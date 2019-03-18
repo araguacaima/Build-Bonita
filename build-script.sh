@@ -4,7 +4,7 @@ set -u
 set -e
 
 # Bonita version
-BONITA_BPM_VERSION=7.8.3
+BONITA_BPM_VERSION=7.8.2
 
 # Test that Maven exists
 if hash mvn 2>/dev/null; then
@@ -114,10 +114,13 @@ checkout() {
   
   # If we don't already clone the repository do it
   if [ ! -d "$checkout_folder_name/.git" ]; then
+    echo Running command: git clone "https://github.com/bonitasoft/$repository_name.git" $checkout_folder_name
     git clone "https://github.com/bonitasoft/$repository_name.git" $checkout_folder_name
   fi
   # Ensure we fetch all the tags and that we are on the appropriate one
+  echo Running command: git -C $checkout_folder_name fetch --tags
   git -C $checkout_folder_name fetch --tags
+  echo Running command: git -C $checkout_folder_name reset --hard tags/$branch_name
   git -C $checkout_folder_name reset --hard tags/$branch_name
   
   # Move to the repository clone folder (required to run Maven wrapper)
