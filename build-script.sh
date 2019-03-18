@@ -126,6 +126,7 @@ checkout() {
 
 run_maven_with_standard_system_properties() {
   build_command="$build_command -Dbonita.engine.version=$BONITA_BPM_VERSION -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7"
+  echo Running command: $build_command
   eval "$build_command"
   # Go back to script folder (checkout move current dirrectory to project checkout folder.
   cd ..
@@ -134,19 +135,20 @@ run_maven_with_standard_system_properties() {
 # FIXME: -Puid-version
 run_gradle_with_standard_system_properties() {
   build_command="$build_command -Dbonita.engine.version=$BONITA_BPM_VERSION -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7"
+  echo Running command: $build_command
   eval "$build_command"
   # Go back to script folder (checkout move current dirrectory to project checkout folder.
   cd ..
 }
 
 build_maven() {
-  build_command="mvn"
+  build_command="mvn --quiet"
 }
 
 build_maven_wrapper() {
   # FIXME: remove temporary workaround added for bonita-web
   chmod u+x mvnw
-  build_command="./mvnw"
+  build_command="./mvnw --quiet"
 }
 
 build_gradle_wrapper() {
