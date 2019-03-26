@@ -77,9 +77,7 @@ EXIT /B %ERRORLEVEL%
 
 rem Detect version of depencies required to build Bonita components in Maven pom.xml files
 :detectDependenciesVersions
-
-  echo Detecting dependencies versions
-  
+  echo Detecting dependencies versions  
   SET URL=https://raw.githubusercontent.com/bonitasoft/bonita-studio/%BONITA_BPM_VERSION%/pom.xml
   set file_=%~dp0pom.xml
   curl -sS -X GET %URL% -o %file_%
@@ -108,7 +106,6 @@ rem Detect version of depencies required to build Bonita components in Maven pom
   echo UID_VERSION: %UID_VERSION%
   echo THEME_BUILDER_VERSION: %THEME_BUILDER_VERSION%
   echo STUDIO_WATCHDOG_VERSION: %STUDIO_WATCHDOG_VERSION%
-  
 EXIT /B 0
 
 REM params:
@@ -116,7 +113,6 @@ REM - Git repository name
 REM - Branch name (optional)
 REM - Checkout folder name (optional)
 :checkout
-
   set argC=0
   for %%x in (%*) do Set /A argC+=1
   
@@ -154,112 +150,81 @@ REM - Checkout folder name (optional)
   REM Move to the repository clone folder (required to run Maven wrapper)
   cd %~dp0%checkout_folder_name%
   SET CURRENTDIR=%~dp0%checkout_folder_name%
-
 EXIT /B 0
 
 :run_maven_with_standard_system_properties
-
   SET build_command=%build_command% -Dbonita.engine.version=%BONITA_BPM_VERSION% -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7
   echo Running command: %build_command%
   echo %build_command% > execute.cmd
   REM Go back to script folder (checkout move current dirrectory to project checkout folder.
   call execute.cmd
   del /f execute.cmd
-
   cd ..
-
-
 EXIT /B 0
 
 :run_gradle_with_standard_system_properties
-
   SET build_command=%build_command% -Dbonita.engine.version=%BONITA_BPM_VERSION% -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7
   echo Running command: %build_command%
   %build_command%
   REM Go back to script folder (checkout move current dirrectory to project checkout folder.
   cd ..
-
 EXIT /B 0
 
 :build_maven
-
   rem SET build_command="mvn --quiet"
   SET build_command=mvn
-
 EXIT /B 0
 
 :build_maven_wrapper
-
-  rem SET build_command="./mvnw --quiet"
-  SET build_command=mvnw.cmd
-
+  rem SET build_command="mvnw --quiet"
+  SET build_command=mvnw
 EXIT /B 0
 
 :build_gradle_wrapper
-
   SET build_command=gradlew
-
 EXIT /B 0
 
 :build
-
   SET build_command=%build_command% build
-
 EXIT /B 0
 
 :publishToMavenLocal
-
   SET build_command=%build_command% publishToMavenLocal
-
 EXIT /B 0
 
 :clean
-
   SET build_command=%build_command% clean
-
 EXIT /B 0
 
 :install
-
   SET build_command=%build_command% install
-
 EXIT /B 0
 
 :verify
-
   SET build_command=%build_command% verify
-
 EXIT /B 0
 
 :maven_test_skip
-
   SET build_command=%build_command% -Dmaven.test.skip=true
-
 EXIT /B 0
 
 :skiptest
-
   SET build_command=%build_command% -DskipTests
-
 EXIT /B 0
 
 :profile
-
   SET build_command=%build_command% -P%1
-
 EXIT /B 0
 
 REM params:
 REM - Git repository name
 REM - Branch name (optional)
 :build_maven_install_maven_test_skip
-
   CALL :checkout %*
   CALL :build_maven
   CALL :install
   CALL :maven_test_skip
   CALL :run_maven_with_standard_system_properties
-
 EXIT /B 0
 
 REM FIXME: should not be used
@@ -267,27 +232,23 @@ REM params:
 REM - Git repository name
 REM - Branch name (optional)
 :build_maven_install_skiptest
-
   CALL :checkout %*
   CALL :build_maven
   CALL :install
   CALL :skiptest
   CALL :run_maven_with_standard_system_properties
-
 EXIT /B 0
 
 REM params:
 REM - Git repository name
 REM - Profile name
 :build_maven_wrapper_verify_maven_test_skip_with_profile
-
   CALL :checkout %1
   CALL :build_maven_wrapper
   CALL :verify
   CALL :maven_test_skip
   CALL :profile %2
   CALL :run_maven_with_standard_system_properties
-
 EXIT /B 0
 
 REM params:
@@ -295,24 +256,19 @@ REM - Git repository name
 REM - Target directory name
 REM - Profile name
 :build_maven_wrapper_install_maven_test_skip_with_target_directory_with_profile
-
   CALL :checkout %1 %BONITA_BPM_VERSION% %2
   CALL :build_maven_wrapper
   CALL :install  
   CALL :maven_test_skip
   CALL :profile %3
   CALL :run_maven_with_standard_system_properties
-  echo "ggggg" %cd%
-
 EXIT /B 0
 
 :build_gradle_build
-
   CALL :checkout %*
   CALL :build_gradle_wrapper
   CALL :publishToMavenLocal
   CALL :run_gradle_with_standard_system_properties
-
 EXIT /B 0
 
 :end
