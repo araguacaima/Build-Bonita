@@ -1,4 +1,7 @@
 @echo off
+
+SET build_command=
+
 setlocal enableextensions enabledelayedexpansion
 
 REM Bonita version
@@ -74,7 +77,7 @@ EXIT /B %ERRORLEVEL%
 
 rem Detect version of depencies required to build Bonita components in Maven pom.xml files
 :detectDependenciesVersions
-SETLOCAL
+
   echo Detecting dependencies versions
   
   SET URL=https://raw.githubusercontent.com/bonitasoft/bonita-studio/%BONITA_BPM_VERSION%/pom.xml
@@ -105,7 +108,7 @@ SETLOCAL
   echo UID_VERSION: %UID_VERSION%
   echo THEME_BUILDER_VERSION: %THEME_BUILDER_VERSION%
   echo STUDIO_WATCHDOG_VERSION: %STUDIO_WATCHDOG_VERSION%
-ENDLOCAL  
+  
 EXIT /B 0
 
 REM params:
@@ -113,7 +116,7 @@ REM - Git repository name
 REM - Branch name (optional)
 REM - Checkout folder name (optional)
 :checkout
-SETLOCAL
+
   set argC=0
   for %%x in (%*) do Set /A argC+=1
   
@@ -124,21 +127,18 @@ SETLOCAL
   ) else (
     SET branch_name=tags/%BONITA_BPM_VERSION%
   )
-    
+  SET repo=https://github.com/bonitasoft
   if %argC% EQU 3 (
     SET checkout_folder_name=%3
   ) else (
-    SET checkout_folder_name=%repository_name%
+    if %argC% EQU 4 (
+      SET checkout_folder_name=%3
+      SET repo=%4
+    ) else (
+      SET checkout_folder_name=%repository_name%
+      SET repo=https://github.com/bonitasoft
+    )
   )
-  
-  if %argC% EQU 4 (
-    SET checkout_folder_name=%3
-    SET repo=%4
-  ) else (
-    SET checkout_folder_name=%repository_name%
-    SET repo=https://github.com/bonitasoft
-  )
-  
   REM If we don't already clone the repository do it
   if NOT EXIST %~dp0%checkout_folder_name%\ (
     echo Running command: git clone %repo%/%repository_name%.git %~dp0%checkout_folder_name%
@@ -153,110 +153,113 @@ SETLOCAL
   
   REM Move to the repository clone folder (required to run Maven wrapper)
   cd %~dp0%checkout_folder_name%
-ENDLOCAL
+  SET CURRENTDIR=%~dp0%checkout_folder_name%
+
 EXIT /B 0
 
 :run_maven_with_standard_system_properties
-SETLOCAL
-  SET build_command="%build_command% -Dbonita.engine.version=%BONITA_BPM_VERSION% -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7"
+
+  SET build_command=%build_command% -Dbonita.engine.version=%BONITA_BPM_VERSION% -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7
   echo Running command: %build_command%
-  eval "%build_command%"
+  echo %build_command% > execute.cmd
   REM Go back to script folder (checkout move current dirrectory to project checkout folder.
+  call execute.cmd
+  del /f execute.cmd
+
   cd ..
-ENDLOCAL
+
+
 EXIT /B 0
 
 :run_gradle_with_standard_system_properties
-SETLOCAL
-  SET build_command="%build_command% -Dbonita.engine.version=%BONITA_BPM_VERSION% -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7"
+
+  SET build_command=%build_command% -Dbonita.engine.version=%BONITA_BPM_VERSION% -Dp2MirrorUrl=http://update-site.bonitasoft.com/p2/7.7
   echo Running command: %build_command%
-  eval "%build_command%"
+  %build_command%
   REM Go back to script folder (checkout move current dirrectory to project checkout folder.
   cd ..
-ENDLOCAL
+
 EXIT /B 0
 
 :build_maven
-SETLOCAL
+
   rem SET build_command="mvn --quiet"
-  SET build_command="mvn"
-ENDLOCAL
+  SET build_command=mvn
+
 EXIT /B 0
 
 :build_maven_wrapper
-SETLOCAL
-  chmod u+x mvnw
+
   rem SET build_command="./mvnw --quiet"
-  SET build_command="./mvnw"
-ENDLOCAL
+  SET build_command=mvnw.cmd
+
 EXIT /B 0
 
 :build_gradle_wrapper
-SETLOCAL
-  chmod u+x gradlew
-  SET build_command="./gradlew"
-ENDLOCAL
+
+  SET build_command=gradlew
+
 EXIT /B 0
 
 :build
-SETLOCAL
-  SET build_command="%build_command% build"
-ENDLOCAL
+
+  SET build_command=%build_command% build
+
 EXIT /B 0
 
 :publishToMavenLocal
-SETLOCAL
-  SET build_command="%build_command% publishToMavenLocal"
-ENDLOCAL
+
+  SET build_command=%build_command% publishToMavenLocal
+
 EXIT /B 0
 
 :clean
-SETLOCAL
-  SET build_command="%build_command% clean"
-ENDLOCAL
+
+  SET build_command=%build_command% clean
+
 EXIT /B 0
 
 :install
-SETLOCAL
-  SET build_command="%build_command% install"
-ENDLOCAL
+
+  SET build_command=%build_command% install
+
 EXIT /B 0
 
 :verify
-SETLOCAL
-  SET build_command="%build_command% verify"
-ENDLOCAL
+
+  SET build_command=%build_command% verify
+
 EXIT /B 0
 
 :maven_test_skip
-SETLOCAL
-  SET build_command="%build_command% -Dmaven.test.skip=true"
-ENDLOCAL
+
+  SET build_command=%build_command% -Dmaven.test.skip=true
+
 EXIT /B 0
 
 :skiptest
-SETLOCAL
-  SET build_command="%build_command% -DskipTests"
-ENDLOCAL
+
+  SET build_command=%build_command% -DskipTests
+
 EXIT /B 0
 
 :profile
-SETLOCAL
-  SET build_command="%build_command% -P%1"
-ENDLOCAL
+
+  SET build_command=%build_command% -P%1
+
 EXIT /B 0
 
 REM params:
 REM - Git repository name
 REM - Branch name (optional)
 :build_maven_install_maven_test_skip
-SETLOCAL
-  CALL :checkout "%*"
+
+  CALL :checkout %*
   CALL :build_maven
   CALL :install
   CALL :maven_test_skip
   CALL :run_maven_with_standard_system_properties
-ENDLOCAL
+
 EXIT /B 0
 
 REM FIXME: should not be used
@@ -264,27 +267,27 @@ REM params:
 REM - Git repository name
 REM - Branch name (optional)
 :build_maven_install_skiptest
-SETLOCAL
-  CALL :checkout "%*"
+
+  CALL :checkout %*
   CALL :build_maven
   CALL :install
   CALL :skiptest
   CALL :run_maven_with_standard_system_properties
-ENDLOCAL
+
 EXIT /B 0
 
 REM params:
 REM - Git repository name
 REM - Profile name
 :build_maven_wrapper_verify_maven_test_skip_with_profile
-SETLOCAL
+
   CALL :checkout %1
   CALL :build_maven_wrapper
   CALL :verify
   CALL :maven_test_skip
   CALL :profile %2
   CALL :run_maven_with_standard_system_properties
-ENDLOCAL
+
 EXIT /B 0
 
 REM params:
@@ -292,23 +295,24 @@ REM - Git repository name
 REM - Target directory name
 REM - Profile name
 :build_maven_wrapper_install_maven_test_skip_with_target_directory_with_profile
-SETLOCAL
+
   CALL :checkout %1 %BONITA_BPM_VERSION% %2
   CALL :build_maven_wrapper
   CALL :install  
   CALL :maven_test_skip
   CALL :profile %3
   CALL :run_maven_with_standard_system_properties
-ENDLOCAL
+  echo "ggggg" %cd%
+
 EXIT /B 0
 
 :build_gradle_build
-SETLOCAL
-  CALL :checkout "%*"
+
+  CALL :checkout %*
   CALL :build_gradle_wrapper
   CALL :publishToMavenLocal
   CALL :run_gradle_with_standard_system_properties
-ENDLOCAL
+
 EXIT /B 0
 
 :end
