@@ -21,3 +21,4 @@ bonita-web-extensions
 bonita-web
 community
 image-overlay-plugin
+*.log
