@@ -25,3 +25,5 @@ image-overlay-plugin
 
 # IDE
 .idea/
+
+*.log
